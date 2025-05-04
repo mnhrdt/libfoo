@@ -1,0 +1,103 @@
+Calling C functions from python is straightforward.  The problem is packaging
+them.  How does "pip install" call the compiler?  This is not straightforward.
+There is no satisfactory way to do that.  Here we show two solutions that are
+insatisfactory in different ways.
+
+
+THE EASY PART
+-------------
+
+We have a C function that halves all the floats in an array, in place:
+
+	// foo.c
+	void foo(float *x, int n)
+	{
+		for (int i = 0; i < n; i++)
+			x[i] /= 2;
+	}
+
+We want to use this function from python in the following way:
+
+	# test.py
+	import foo
+	x = [1,2,3,4]  # or a numpy array
+	y = foo(x)     # returns [0.5, 1.0, 1.5, 2.0]
+
+First, we compile the C function as as an object with position-independent code
+
+	cc -shared -fPIC foo.c -o foo.so
+
+Then we can load the shared object from python and call its functions
+
+	# foo.py
+
+	# read the shared object upon import
+	from ctypes import CDLL, POINTER, c_float, c_int
+	cfoo = CDLL("libfoo.o").foo
+	cfoo.argtype = [POINTER(c_float), c_int]
+	cfoo.restype = None
+
+	# define the python interface
+	def foo(x):
+		from numpy import ascontiguousarray, float32
+		from ctypes import POINTER, c_float
+		X = ascontiguousarray(x, dtype=float32)
+		P = X.ctypes.data_as(POINTER(c_float))
+		cfoo(P, X.size)
+		return X
+
+	# export the python interface as a callable module
+	import sys
+	sys.modules[__name__] = foo
+
+
+
+
+THE HARD PART
+-------------
+
+As we have seen above, calling C from python is completely straightforward.
+Using CFFI a lot of the boilerplate can even be avoided, but this will make the
+packaging slightly harder, so for now we'll stick to CTYPES.
+
+Our goal is to package this code so that it can be installed easily with "pip
+install".  This is complicated, because during "pip install" the C source file
+will have to be compiled in the local computer.
+
+As of 2025, the online documentation for doing so is a bit, to say it softly,
+disheartening.  Either you are pointed to setuptools, but are discouraged to
+use it because it is heretic legacy that will stop working real soon; or you
+are pointed to write a pyproject.toml which is PEP-sanctioned, but does not
+allow to use custom build instructions.
+
+In this project we show how to do it both ways, and leave the choice to the
+user.  In either case, the requirements are the following
+
+R1. The C implementation "foo.c"  cannot be changed
+R2. The Python interface "foo.py" cannot be changed
+R3. Doing "pip install foo" must not bring any additional dependencies
+R4. The compilation line must appear explicitly in the setp
+
+
+WITH SETUPTOOLS
+---------------
+
+To use the common (some would say legacy) setuptools, you must write one file
+setup.py that specifies the build instructions, and some minimal metadata for
+the module (name, version, etc).
+
+Then you can install it locally:
+
+	# local install from libfoo root:
+	pip install .
+
+Or you can build
+
+
+WITHOUT SETUPTOOLS
+------------------
+
+If you want to use the church-sanctioned modern way, you have to write two
+files: a "pyproject.toml" to define the "project" (even if it's just a single
+function), and a "build.py" where the custom build instructions appear, inside
+callbacks with specific names expected by the system.
