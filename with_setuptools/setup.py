@@ -8,8 +8,8 @@ class my_build(build_ext):
 		if sys.platform == "darwin":
 			e = "dylib"
 			o = f"{o} -undefined dynamic_lookup"
-		os.system(f"cc {o} foo.c -o libfoo.{e}")
-		os.system(f"cp libfoo.{e} {self.build_lib}/libfoo.{e}")
+		os.system(f"cc {o} foo.c -o cfoo.{e}")
+		os.system(f"cp cfoo.{e} {self.build_lib}/cfoo.{e}")
 
 from setuptools import Extension, setup
 setup(

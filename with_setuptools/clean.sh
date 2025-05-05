@@ -1,1 +1,1 @@
-rm -rf build dist foo.egg-info libfoo.so
+rm -rf build dist foo.egg-info cfoo.so

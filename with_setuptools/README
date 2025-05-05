@@ -11,6 +11,9 @@ python setup.py sdist
 # test compilation in-place (just the compilation)
 python setup.py build
 
+# compile and build a binary package dist/foo-1-XXXXXXXXXX.whl
+python setup.py bdist_wheel
+
 # compile and install a tgz source distribution
 pip install dist/foo-1.tar.gz
 
