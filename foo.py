@@ -7,7 +7,7 @@ def __setup_functions():
 	from os.path import dirname
 	from ctypes import CDLL, POINTER, c_float, c_int
 
-	__foo = CDLL(f"{dirname(__file__)}/libfoo.so").foo
+	__foo = CDLL(f"{dirname(__file__)}/cfoo.so").foo
 	__foo.argtypes = [POINTER(c_float), c_int]
 	__foo.restype = None
 
