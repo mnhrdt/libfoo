@@ -2,9 +2,14 @@
 from setuptools.command.build_ext import build_ext
 class my_build(build_ext):
 	def run(self):
-		from os import system as SH
-		SH(f"cc -O3 -march=native -shared -fPIC foo.c -o libfoo.so")
-		SH(f"cp libfoo.so {self.build_lib}/libfoo.so")
+		o = "-O3 -march=native -shared -fPIC" # compilation options
+		e = "so"                              # .ext of shared objects
+		import sys, os
+		if sys.platform == "darwin":
+			e = "dylib"
+			o = f"{o} -undefined dynamic_lookup"
+		os.system(f"cc {o} foo.c -o libfoo.{e}")
+		os.system(f"cp libfoo.{e} {self.build_lib}/libfoo.{e}")
 
 from setuptools import Extension, setup
 setup(

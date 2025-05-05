@@ -1,0 +1,19 @@
+Example C extension using setuptools.
+
+Various (independent options)
+
+# install package locally
+pip install .
+
+# build tgz source distribution in dist/foo-1.tar.gz (no compilation happens)
+python setup.py sdist
+
+# test compilation in-place (just the compilation)
+python setup.py build
+
+# compile and install a tgz source distribution
+pip install dist/foo-1.tar.gz
+
+# install from github directly (will compile and install)
+pip install "git+https://github.com/mnhrdt/libfoo.git/#subdirectory=with_setuptools"
+
