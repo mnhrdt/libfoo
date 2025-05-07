@@ -6,8 +6,10 @@ def __setup_functions():
 
 	from os.path import dirname
 	from ctypes import CDLL, POINTER, c_float, c_int
+	from sys import platform
 
-	__foo = CDLL(f"{dirname(__file__)}/cfoo.so").foo
+	e = "so" if platform != "darwin" else "dylib"
+	__foo = CDLL(f"{dirname(__file__)}/cfoo.{e}").foo
 	__foo.argtypes = [POINTER(c_float), c_int]
 	__foo.restype = None
 
